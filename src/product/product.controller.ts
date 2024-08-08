@@ -81,4 +81,14 @@ export class ProductController {
   async deleteProduct(@Param('id') id: number) {
     return await this.productService.deleteProduct(id);
   }
+
+  @Get('listByTenant/:tenantId')
+  @ApiOperation({ summary: 'Get Product By Tenant Id' })
+  @ResponseMessage(PRODUCT_LIST)
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+  @UseGuards(RoleGuard)
+  async getProductByTenant(@Param('tenantId') tenantId: number) {
+    return await this.productService.getProductByTenant(tenantId);
+  }
 }

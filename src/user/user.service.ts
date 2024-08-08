@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compareSync, hash } from 'bcrypt';
 import {
+  TENANT_NOT_FOUND,
   USER_ALREADY_EXIST,
   USER_NOT_FOUND,
 } from 'src/common/constants/response.constants';
@@ -13,11 +14,13 @@ import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Tenant } from 'src/common/entities/tenant';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(Tenant) private tenantRepo: Repository<Tenant>,
     private jwtService: JwtService,
   ) {}
 
@@ -175,7 +178,44 @@ export class UserService {
       if (!userExist) {
         throw AuthExceptions.customException(USER_NOT_FOUND, statusBadRequest);
       }
-      return await this.userRepo.remove(userExist);
+      return await this.userRepo
+        .createQueryBuilder('user')
+        .delete()
+        .from(User)
+        .where('id = :id', { id })
+        .execute();
+    } catch (error) {
+      throw AuthExceptions.customException(
+        error?.response?.message,
+        error?.status,
+      );
+    }
+  }
+
+  async findUserByTenant(tenantId: number) {
+    try {
+      const tenantExist = await this.tenantRepo.findOneBy({ id: tenantId });
+      if (!tenantExist) {
+        throw AuthExceptions.customException(
+          TENANT_NOT_FOUND,
+          statusBadRequest,
+        );
+      }
+      return await this.userRepo
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.tenant', 'tenant')
+        .where('user.tenantId = :tenantId', { tenantId })
+        .select([
+          'user.id',
+          'user.name',
+          'user.email',
+          'user.phone',
+          'user.address',
+          'user.role',
+          'tenant.id',
+          'tenant.name',
+        ])
+        .getMany();
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

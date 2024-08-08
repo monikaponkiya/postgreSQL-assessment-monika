@@ -10,6 +10,8 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { TenantModule } from './tenant/tenant.module';
 import { ProductModule } from './product/product.module';
 import { UserModule } from './user/user.module';
+import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottleModule } from './security/throttle/throttle.module';
 
 @Module({
   imports: [
@@ -20,12 +22,17 @@ import { UserModule } from './user/user.module';
     }),
     DatabaseModule,
     AuthModule,
+    ThrottleModule,
     TenantModule,
     ProductModule,
     UserModule,
   ],
   controllers: [],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

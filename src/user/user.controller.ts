@@ -93,4 +93,14 @@ export class UserController {
   async deleteUser(@Param('id') id: number) {
     return await this.userService.deleteUser(id);
   }
+
+  @Get('getUserByTenant/:tenantId')
+  @ApiOperation({ summary: 'List User By Tenant Id' })
+  @ResponseMessage(USER_LIST)
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @UseGuards(RoleGuard)
+  async findUserByTenant(@Param('tenantId') tenantId: number) {
+    return await this.userService.findUserByTenant(tenantId);
+  }
 }

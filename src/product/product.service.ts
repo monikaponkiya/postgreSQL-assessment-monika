@@ -8,12 +8,15 @@ import { statusBadRequest } from 'src/common/constants/response.status.constant'
 import {
   PRODUCT_ALREADY_EXIST,
   PRODUCT_NOT_FOUND,
+  TENANT_NOT_FOUND,
 } from 'src/common/constants/response.constants';
+import { Tenant } from 'src/common/entities/tenant';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product) private productRepo: Repository<Product>,
+    @InjectRepository(Tenant) private tenantRepo: Repository<Tenant>,
   ) {}
 
   async findProductByName(name: string) {
@@ -114,7 +117,39 @@ export class ProductService {
           statusBadRequest,
         );
       }
-      return await this.productRepo.delete({ id });
+      return await this.productRepo
+        .createQueryBuilder('product')
+        .delete()
+        .from(Product)
+        .where('id = :id', { id })
+        .execute();
+    } catch (error) {
+      throw AuthExceptions.customException(
+        error?.response?.message,
+        error?.status,
+      );
+    }
+  }
+
+  async getProductByTenant(tenantId: number) {
+    try {
+      const checkTenant = await this.tenantRepo.findOne({
+        where: {
+          id: tenantId,
+        },
+      });
+      if (!checkTenant) {
+        throw AuthExceptions.customException(
+          TENANT_NOT_FOUND,
+          statusBadRequest,
+        );
+      }
+      return await this.productRepo
+        .createQueryBuilder('product')
+        .leftJoinAndSelect('product.tenant', 'tenant')
+        .where('product.tenantId = :tenantId', { tenantId })
+        .select(['product', 'tenant.id', 'tenant.name'])
+        .getMany();
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,
