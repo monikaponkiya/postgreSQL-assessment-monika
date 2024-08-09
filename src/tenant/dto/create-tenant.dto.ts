@@ -11,4 +11,9 @@ export class CreateTenantDto {
   @IsNotEmpty()
   @ApiProperty()
   company_email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  company_phone: string;
 }

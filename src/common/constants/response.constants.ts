@@ -1,4 +1,3 @@
-export const RESPONSE_SUCCESS = 'Response success';
 export const LOGIN_PASSWORD = 'Please login using this password';
 
 // Tenant
@@ -21,6 +20,7 @@ export const PRODUCT_DETAIL = 'Product detail get successfully';
 
 // User
 export const USER_LOGIN = 'User login successfully';
+export const USER_CHANGE_PASSWORD = 'User password changed successfully';
 export const USER_CREATE = 'User created successfully';
 export const USER_UPDATE = 'User updated successfully';
 export const USER_DELETE = 'User deleted successfully';

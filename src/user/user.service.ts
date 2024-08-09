@@ -1,59 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { compareSync, hash } from 'bcrypt';
+import { hash } from 'bcrypt';
 import {
-  TENANT_NOT_FOUND,
+  LOGIN_PASSWORD,
   USER_ALREADY_EXIST,
   USER_NOT_FOUND,
 } from 'src/common/constants/response.constants';
 import { statusBadRequest } from 'src/common/constants/response.status.constant';
-import { LoginDto } from 'src/common/dto/login.dto';
+import { ListDto } from 'src/common/dto/list.dto';
+import { Tenant } from 'src/common/entities/tenant';
 import { User } from 'src/common/entities/user';
 import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
+import applyQueryOptions from 'src/common/queryHelper';
+import { EmailService } from 'src/email/email.service';
+import { welcomeTemplate } from 'src/email/emailTemplates/welcome';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Tenant } from 'src/common/entities/tenant';
+import { accessUser, UserRole } from 'src/common/constants/user-role';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Tenant) private tenantRepo: Repository<Tenant>,
-    private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
-
-  async userLogin(user: LoginDto) {
-    try {
-      const userExist = await this.userRepo.findOne({
-        where: { email: user.email },
-      });
-      if (!userExist) {
-        throw AuthExceptions.customException(USER_NOT_FOUND, statusBadRequest);
-      }
-      if (!(await compareSync(user.password, userExist.password))) {
-        throw AuthExceptions.InvalidIdPassword();
-      }
-      const payload = {
-        id: userExist.id,
-        name: userExist.name,
-        role: userExist.role,
-        tenantId: userExist.tenantId,
-      };
-      return {
-        access_token: await this.jwtService.signAsync(payload, {
-          secret: process.env.JWT_TOKEN_SECRET,
-          expiresIn: process.env.JWT_TONE_EXPIRY_TIME,
-        }),
-      };
-    } catch (error) {
-      throw AuthExceptions.customException(
-        error?.response?.message,
-        error?.status,
-      );
-    }
-  }
 
   private extractUserDetails(user: User): {
     id: number;
@@ -61,6 +33,7 @@ export class UserService {
     email: string;
     phone: string;
     address: string;
+    role: string;
   } {
     return {
       id: user.id,
@@ -68,6 +41,7 @@ export class UserService {
       email: user.email,
       phone: user.phone,
       address: user.address,
+      role: user.role,
     };
   }
 
@@ -88,12 +62,22 @@ export class UserService {
           statusBadRequest,
         );
       }
+      const randomPassword = Math.random().toString(36).slice(-8);
       const userObj = {
         ...user,
         tenantId: tenantId,
-        password: await hash(user.password, 10),
+        password: await hash(randomPassword, 10),
       };
       const createdUser = await this.userRepo.save(userObj);
+
+      if (createdUser.role !== UserRole.STAFF) {
+        await this.emailService.emailSender(
+          createdUser.email.toLowerCase(),
+          LOGIN_PASSWORD,
+          `${welcomeTemplate(createdUser, randomPassword)}`,
+        );
+      }
+
       return this.extractUserDetails(createdUser);
     } catch (error) {
       throw AuthExceptions.customException(
@@ -138,6 +122,7 @@ export class UserService {
           'user.email',
           'user.phone',
           'user.address',
+          'tenant.id',
           'tenant.name',
         ])
         .where('user.id = :id', { id })
@@ -150,21 +135,59 @@ export class UserService {
     }
   }
 
-  async findAllUser() {
+  async findAllUser(body: ListDto, user: User) {
     try {
-      return await this.userRepo
+      const page = body.page ? Number(body.page) : 1;
+      const limit = body.limit ? Number(body.limit) : 10;
+      const skip = (page - 1) * limit;
+
+      const roles = accessUser[user.role];
+
+      const queryBuilder = this.userRepo
         .createQueryBuilder('user')
         .leftJoinAndSelect('user.tenant', 'tenant')
+        .where('user.tenantId = :tenantId', { tenantId: user.tenantId })
+        .andWhere('user.role IN (:...roles)', { roles: roles })
         .select([
           'user.id',
           'user.name',
           'user.email',
           'user.phone',
           'user.address',
+          'user.role',
+          'tenant.id',
           'tenant.name',
-        ])
-        .getMany();
+        ]);
+
+      if (body.search) {
+        queryBuilder.andWhere(
+          'tenant.name LIKE :search OR user.name LIKE :search',
+          { search: `%${body.search}%` },
+        );
+      }
+
+      applyQueryOptions(
+        queryBuilder,
+        {
+          search: body.search,
+          sortBy: body.sortBy,
+          sortOrder: body.sortOrder,
+          skip: skip,
+          limit: body.limit,
+        },
+        'user',
+      );
+
+      const [users, total] = await queryBuilder.getManyAndCount();
+
+      return {
+        data: users,
+        total,
+        page,
+        limit,
+      };
     } catch (error) {
+      console.log('error: ', error);
       throw AuthExceptions.customException(
         error?.response?.message,
         error?.status,
@@ -184,38 +207,6 @@ export class UserService {
         .from(User)
         .where('id = :id', { id })
         .execute();
-    } catch (error) {
-      throw AuthExceptions.customException(
-        error?.response?.message,
-        error?.status,
-      );
-    }
-  }
-
-  async findUserByTenant(tenantId: number) {
-    try {
-      const tenantExist = await this.tenantRepo.findOneBy({ id: tenantId });
-      if (!tenantExist) {
-        throw AuthExceptions.customException(
-          TENANT_NOT_FOUND,
-          statusBadRequest,
-        );
-      }
-      return await this.userRepo
-        .createQueryBuilder('user')
-        .leftJoinAndSelect('user.tenant', 'tenant')
-        .where('user.tenantId = :tenantId', { tenantId })
-        .select([
-          'user.id',
-          'user.name',
-          'user.email',
-          'user.phone',
-          'user.address',
-          'user.role',
-          'tenant.id',
-          'tenant.name',
-        ])
-        .getMany();
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from 'src/common/entities/product';
-import { Repository } from 'typeorm';
-import { CreateProductDto } from './dto/create-product.dto';
-import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
-import { statusBadRequest } from 'src/common/constants/response.status.constant';
 import {
   PRODUCT_ALREADY_EXIST,
   PRODUCT_NOT_FOUND,
-  TENANT_NOT_FOUND,
 } from 'src/common/constants/response.constants';
+import { statusBadRequest } from 'src/common/constants/response.status.constant';
+import { ListDto } from 'src/common/dto/list.dto';
+import { Product } from 'src/common/entities/product';
 import { Tenant } from 'src/common/entities/tenant';
+import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
+import applyQueryOptions from 'src/common/queryHelper';
+import { Repository } from 'typeorm';
+import { CreateUpdateProductDto } from './dto/create-update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -27,7 +28,7 @@ export class ProductService {
     return await this.productRepo.findOne({ where: { id } });
   }
 
-  async createProduct(product: CreateProductDto, tenantId: number) {
+  async createProduct(product: CreateUpdateProductDto, tenantId: number) {
     try {
       const isProductExist = await this.findProductByName(product.name);
       if (isProductExist) {
@@ -49,7 +50,7 @@ export class ProductService {
     }
   }
 
-  async updateProduct(id: number, product: CreateProductDto) {
+  async updateProduct(id: number, product: CreateUpdateProductDto) {
     try {
       const productExist = await this.findProductById(id);
       if (!productExist) {
@@ -93,13 +94,45 @@ export class ProductService {
     }
   }
 
-  async getProductList() {
+  async getProductList(body: ListDto, tenantId: number) {
     try {
-      return await this.productRepo
+      const page = body.page ? Number(body.page) : 1;
+      const limit = body.limit ? Number(body.limit) : 10;
+      const skip = (page - 1) * limit;
+
+      const queryBuilder = this.productRepo
         .createQueryBuilder('product')
         .leftJoinAndSelect('product.tenant', 'tenant')
-        .select(['product', 'tenant.id', 'tenant.name'])
-        .getMany();
+        .where('product.tenantId = :tenantId', { tenantId })
+        .select(['product', 'tenant.id', 'tenant.name']);
+
+      if (body.search) {
+        queryBuilder.andWhere(
+          'product.name LIKE :search OR tenant.name LIKE :search',
+          { search: `%${body.search}%` },
+        );
+      }
+
+      applyQueryOptions(
+        queryBuilder,
+        {
+          search: body.search,
+          sortBy: body.sortBy,
+          sortOrder: body.sortOrder,
+          skip: skip,
+          limit: body.limit,
+        },
+        'product',
+      );
+
+      const [products, total] = await queryBuilder.getManyAndCount();
+
+      return {
+        data: products,
+        total,
+        page,
+        limit,
+      };
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,
@@ -123,33 +156,6 @@ export class ProductService {
         .from(Product)
         .where('id = :id', { id })
         .execute();
-    } catch (error) {
-      throw AuthExceptions.customException(
-        error?.response?.message,
-        error?.status,
-      );
-    }
-  }
-
-  async getProductByTenant(tenantId: number) {
-    try {
-      const checkTenant = await this.tenantRepo.findOne({
-        where: {
-          id: tenantId,
-        },
-      });
-      if (!checkTenant) {
-        throw AuthExceptions.customException(
-          TENANT_NOT_FOUND,
-          statusBadRequest,
-        );
-      }
-      return await this.productRepo
-        .createQueryBuilder('product')
-        .leftJoinAndSelect('product.tenant', 'tenant')
-        .where('product.tenantId = :tenantId', { tenantId })
-        .select(['product', 'tenant.id', 'tenant.name'])
-        .getMany();
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

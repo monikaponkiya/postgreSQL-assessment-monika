@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { hash, compareSync } from 'bcrypt';
 import { statusBadRequest } from 'src/common/constants/response.status.constant';
 import { UserRole } from 'src/common/constants/user-role';
+import { ChangePasswordDto } from 'src/common/dto/change-password.dto';
 import { LoginDto } from 'src/common/dto/login.dto';
 import { User } from 'src/common/entities/user';
 import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
@@ -37,21 +38,22 @@ export class AuthService {
     }
   }
 
-  async adminLogin(loginDto: LoginDto) {
+  async login(loginDto: LoginDto) {
     try {
-      const admin = await this.userRepo.findOne({
+      const user = await this.userRepo.findOne({
         where: { email: loginDto.email },
       });
-      if (!admin) {
+      if (!user) {
         throw AuthExceptions.AccountNotFound();
       }
-      if (!(await compareSync(loginDto.password, admin.password))) {
+      if (!(await compareSync(loginDto.password, user.password))) {
         throw AuthExceptions.InvalidIdPassword();
       }
       const payload = {
-        id: admin.id,
-        name: admin.name,
-        role: UserRole.SUPER_ADMIN,
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
       };
       return {
         access_token: await this.jwtService.signAsync(payload, {
@@ -64,6 +66,27 @@ export class AuthService {
         error?.response?.message,
         error?.status,
       );
+    }
+  }
+
+  async userChangePassword(body: ChangePasswordDto) {
+    try {
+      const user = await this.userRepo.findOneBy({ id: body.id });
+      if (!user) {
+        throw AuthExceptions.AccountNotFound();
+      }
+      const isPasswordMatch = await compareSync(
+        body.current_password,
+        user.password,
+      );
+      if (!isPasswordMatch) {
+        throw AuthExceptions.InvalidIdPassword();
+      }
+      user.password = await hash(body.new_password, 10);
+      await this.userRepo.save(user);
+      return {};
+    } catch (error) {
+      throw AuthExceptions.customException(error.message, statusBadRequest);
     }
   }
 }

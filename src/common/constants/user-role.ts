@@ -4,3 +4,8 @@ export enum UserRole {
   MANAGER = 'manager',
   STAFF = 'staff',
 }
+
+export const accessUser = {
+  admin: [UserRole.MANAGER, UserRole.STAFF],
+  manager: [UserRole.STAFF],
+};

@@ -9,40 +9,47 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UserRole } from 'src/common/constants/user-role';
-import { RoleGuard } from 'src/security/guard/role.guard';
-import { Roles } from 'src/common/decorators/role.decorator';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { LoginDto } from 'src/common/dto/login.dto';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { USER } from 'src/common/constants/api.description.constant';
 import {
   USER_CREATE,
   USER_DELETE,
   USER_DETAIL,
   USER_LIST,
-  USER_LOGIN,
   USER_UPDATE,
 } from 'src/common/constants/response.constants';
+import { UserRole } from 'src/common/constants/user-role';
 import { ResponseMessage } from 'src/common/decorators/response.decorator';
-import { Public } from 'src/security/auth/auth.decorator';
+import { Roles } from 'src/common/decorators/role.decorator';
+import { ListDto } from 'src/common/dto/list.dto';
+import { RoleGuard } from 'src/security/guard/role.guard';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  CreateUserResponseDto,
+  DeleteUserResponseDto,
+  UpdateUserResponseDto,
+  UserDetailResponseDto,
+  UserListResponseDto,
+} from './dto/user-response.dto';
+import { UserService } from './user.service';
 
 @Controller('user')
 @ApiTags('User Management')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('login')
-  @ApiOperation({ summary: 'Login User' })
-  @ResponseMessage(USER_LOGIN)
-  @Public()
-  async userLogin(@Body() loginDto: LoginDto) {
-    return await this.userService.userLogin(loginDto);
-  }
-
   @Post('create')
-  @ApiOperation({ summary: 'Create User' })
+  @ApiOperation({
+    summary: USER.CREATE.summary,
+    description: USER.CREATE.description,
+  })
+  @ApiResponse({ type: CreateUserResponseDto })
   @ResponseMessage(USER_CREATE)
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN)
@@ -52,7 +59,11 @@ export class UserController {
   }
 
   @Put('update/:id')
-  @ApiOperation({ summary: 'Update User' })
+  @ApiOperation({
+    summary: USER.UPDATE.summary,
+    description: USER.UPDATE.description,
+  })
+  @ApiResponse({ type: UpdateUserResponseDto })
   @ResponseMessage(USER_UPDATE)
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN)
@@ -65,7 +76,11 @@ export class UserController {
   }
 
   @Get('find/:id')
-  @ApiOperation({ summary: 'Find User By Id' })
+  @ApiOperation({
+    summary: USER.FIND_BY_ID.summary,
+    description: USER.FIND_BY_ID.description,
+  })
+  @ApiResponse({ type: UserDetailResponseDto })
   @ResponseMessage(USER_DETAIL)
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
@@ -74,33 +89,31 @@ export class UserController {
     return await this.userService.findUserDetails(id);
   }
 
-  @Get('list')
-  @ApiOperation({ summary: 'List User' })
+  @Post('list')
+  @ApiOperation({
+    summary: USER.FIND_ALL.summary,
+    description: USER.FIND_ALL.description,
+  })
+  @ApiResponse({ type: UserListResponseDto })
   @ResponseMessage(USER_LIST)
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @UseGuards(RoleGuard)
-  async listUser() {
-    return await this.userService.findAllUser();
+  async listUser(@Body() body: ListDto, @Req() req: any) {
+    return await this.userService.findAllUser(body, req.user);
   }
 
   @Delete('delete/:id')
-  @ApiOperation({ summary: 'Delete User By Id' })
+  @ApiOperation({
+    summary: USER.DELETE.summary,
+    description: USER.DELETE.description,
+  })
+  @ApiResponse({ type: DeleteUserResponseDto })
   @ResponseMessage(USER_DELETE)
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN)
   @UseGuards(RoleGuard)
   async deleteUser(@Param('id') id: number) {
     return await this.userService.deleteUser(id);
-  }
-
-  @Get('getUserByTenant/:tenantId')
-  @ApiOperation({ summary: 'List User By Tenant Id' })
-  @ResponseMessage(USER_LIST)
-  @ApiBearerAuth()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @UseGuards(RoleGuard)
-  async findUserByTenant(@Param('tenantId') tenantId: number) {
-    return await this.userService.findUserByTenant(tenantId);
   }
 }

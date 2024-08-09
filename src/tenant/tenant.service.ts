@@ -1,27 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  LOGIN_PASSWORD,
   TENANT_ALREADY_EXIST,
   TENANT_NOT_FOUND,
 } from 'src/common/constants/response.constants';
 import { statusBadRequest } from 'src/common/constants/response.status.constant';
 import { UserRole } from 'src/common/constants/user-role';
+import { ListDto } from 'src/common/dto/list.dto';
 import { Tenant } from 'src/common/entities/tenant';
 import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
+import applyQueryOptions from 'src/common/queryHelper';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
-import { EmailService } from 'src/email/email.service';
-import { welcomeTemplate } from 'src/email/emailTemplates/welcome';
 
 @Injectable()
 export class TenantService {
   constructor(
     @InjectRepository(Tenant) private tenantRepo: Repository<Tenant>,
     private userService: UserService,
-    private emailService: EmailService,
   ) {}
 
   async createTenant(tenant: CreateTenantDto) {
@@ -37,26 +35,17 @@ export class TenantService {
         );
       }
       const createdTenant = await this.tenantRepo.save(tenant);
+
       // Create admin for tenant
-      const randomPassword = Math.random().toString(36).slice(-8);
       const adminObj = {
         name: `Admin ${createdTenant.name}`,
         email: tenant.company_email,
-        phone: '8153848585',
-        password: randomPassword,
+        phone: tenant.company_phone,
         role: UserRole.ADMIN,
         address: '',
         tenantId: createdTenant.id,
       };
-      const createdAdmin = await this.userService.createUser(
-        adminObj,
-        createdTenant.id,
-      );
-      await this.emailService.emailSender(
-        createdAdmin.email.toLowerCase(),
-        LOGIN_PASSWORD,
-        `${welcomeTemplate(createdAdmin, adminObj.password)}`,
-      );
+      await this.userService.createUser(adminObj, createdTenant.id);
       return createdTenant;
     } catch (error) {
       throw AuthExceptions.customException(
@@ -125,9 +114,13 @@ export class TenantService {
     }
   }
 
-  async findAllTenants() {
+  async findAllTenants(body: ListDto) {
     try {
-      return await this.tenantRepo
+      const page = body.page ? Number(body.page) : 1;
+      const limit = body.limit ? Number(body.limit) : 10;
+      const skip = (page - 1) * limit;
+
+      const queryBuilder = this.tenantRepo
         .createQueryBuilder('tenant')
         .leftJoinAndSelect('tenant.users', 'users')
         .leftJoinAndSelect('tenant.products', 'products')
@@ -143,8 +136,35 @@ export class TenantService {
           'products.name',
           'products.description',
           'products.price',
-        ])
-        .getMany();
+        ]);
+
+      if (body.search) {
+        queryBuilder.andWhere(
+          '(tenant.name LIKE :search OR users.name LIKE :search)',
+          { search: `%${body.search}%` },
+        );
+      }
+
+      applyQueryOptions(
+        queryBuilder,
+        {
+          search: body.search,
+          sortBy: body.sortBy,
+          sortOrder: body.sortOrder,
+          skip: skip,
+          limit: body.limit,
+        },
+        'tenant',
+      );
+
+      const [tenants, total] = await queryBuilder.getManyAndCount();
+
+      return {
+        data: tenants,
+        total,
+        page,
+        limit,
+      };
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

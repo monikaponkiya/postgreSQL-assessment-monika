@@ -9,7 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { PRODUCT } from 'src/common/constants/api.description.constant';
 import {
   PRODUCT_CREATE,
   PRODUCT_DELETE,
@@ -17,78 +23,95 @@ import {
   PRODUCT_LIST,
   PRODUCT_UPDATE,
 } from 'src/common/constants/response.constants';
-import { ResponseMessage } from 'src/common/decorators/response.decorator';
-import { CreateProductDto } from './dto/create-product.dto';
-import { ProductService } from './product.service';
-import { RoleGuard } from 'src/security/guard/role.guard';
-import { Roles } from 'src/common/decorators/role.decorator';
 import { UserRole } from 'src/common/constants/user-role';
+import { ResponseMessage } from 'src/common/decorators/response.decorator';
+import { Roles } from 'src/common/decorators/role.decorator';
+import { ListDto } from 'src/common/dto/list.dto';
+import { RoleGuard } from 'src/security/guard/role.guard';
+import { CreateUpdateProductDto } from './dto/create-update-product.dto';
+import {
+  CreateProductResponseDto,
+  ProductDeleteResponseDto,
+  ProductDetailsResponseDto,
+  ProductListResponseDto,
+  UpdateProductResponseDto,
+} from './dto/product-response.dto';
+import { ProductService } from './product.service';
 
 @Controller('product')
 @ApiTags('Product Management')
+@ApiBearerAuth()
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post('create')
-  @ApiOperation({ summary: 'Create Product' })
+  @ApiOperation({
+    summary: PRODUCT.CREATE.summary,
+    description: PRODUCT.CREATE.description,
+  })
+  @ApiResponse({ type: CreateProductResponseDto })
   @ResponseMessage(PRODUCT_CREATE)
-  @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @UseGuards(RoleGuard)
-  async createProduct(@Body() product: CreateProductDto, @Req() req: any) {
+  async createProduct(
+    @Body() product: CreateUpdateProductDto,
+    @Req() req: any,
+  ) {
     return await this.productService.createProduct(product, req.user.tenantId);
   }
 
   @Put('update/:id')
-  @ApiOperation({ summary: 'Update Product' })
+  @ApiOperation({
+    summary: PRODUCT.UPDATE.summary,
+    description: PRODUCT.UPDATE.description,
+  })
+  @ApiResponse({ type: UpdateProductResponseDto })
   @ResponseMessage(PRODUCT_UPDATE)
-  @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @UseGuards(RoleGuard)
   async updateProduct(
     @Param('id') id: number,
-    @Body() product: CreateProductDto,
+    @Body() product: CreateUpdateProductDto,
   ) {
     return await this.productService.updateProduct(id, product);
   }
 
   @Get('findById/:id')
-  @ApiOperation({ summary: 'Get Product By Id' })
+  @ApiOperation({
+    summary: PRODUCT.FIND_BY_ID.summary,
+    description: PRODUCT.FIND_BY_ID.description,
+  })
+  @ApiResponse({ type: ProductDetailsResponseDto })
   @ResponseMessage(PRODUCT_DETAIL)
-  @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
   @UseGuards(RoleGuard)
   async findProductById(@Param('id') id: number) {
     return await this.productService.getProductDetail(id);
   }
 
-  @Get('list')
-  @ApiOperation({ summary: 'Get Product List' })
+  @Post('list')
+  @ApiOperation({
+    summary: PRODUCT.LIST.summary,
+    description: PRODUCT.LIST.description,
+  })
+  @ApiResponse({ type: ProductListResponseDto })
   @ResponseMessage(PRODUCT_LIST)
-  @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
   @UseGuards(RoleGuard)
-  async getProductList() {
-    return await this.productService.getProductList();
+  async getProductList(@Body() body: ListDto, @Req() req: any) {
+    return await this.productService.getProductList(body, req.user.tenantId);
   }
 
   @Delete('delete/:id')
-  @ApiOperation({ summary: 'Delete Product' })
+  @ApiOperation({
+    summary: PRODUCT.DELETE.summary,
+    description: PRODUCT.DELETE.description,
+  })
+  @ApiResponse({ type: ProductDeleteResponseDto })
   @ResponseMessage(PRODUCT_DELETE)
-  @ApiBearerAuth()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @Roles(UserRole.ADMIN)
   @UseGuards(RoleGuard)
   async deleteProduct(@Param('id') id: number) {
     return await this.productService.deleteProduct(id);
-  }
-
-  @Get('listByTenant/:tenantId')
-  @ApiOperation({ summary: 'Get Product By Tenant Id' })
-  @ResponseMessage(PRODUCT_LIST)
-  @ApiBearerAuth()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
-  @UseGuards(RoleGuard)
-  async getProductByTenant(@Param('tenantId') tenantId: number) {
-    return await this.productService.getProductByTenant(tenantId);
   }
 }
