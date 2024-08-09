@@ -15,11 +15,8 @@ export class Product {
   @Column('decimal')
   price: number;
 
-  @Column({ default: null })
-  tenantId: number;
-
-  @ManyToOne(() => Tenant, (tenant) => tenant.id)
-  tenant: Tenant;
+  @ManyToOne(() => Tenant, (tenant) => tenant.products)
+  tenant: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

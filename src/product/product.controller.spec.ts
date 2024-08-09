@@ -123,7 +123,7 @@ describe('ProductController', () => {
 
   describe('createProduct', () => {
     it('should create a product and return the response', async () => {
-      const req = { user: { tenantId: 1 } };
+      const req = { user: { tenant: 1 } };
 
       const result: CreateProductResponseDto = {
         data: {
@@ -144,13 +144,13 @@ describe('ProductController', () => {
       expect(await controller.createProduct(productDto, req)).toBe(result);
       expect(mockProductService.createProduct).toHaveBeenCalledWith(
         productDto,
-        req.user.tenantId,
+        req.user.tenant,
       );
       expect(service.createProduct).toHaveBeenCalled();
     });
 
     it('should handle errors', async () => {
-      const req = { user: { tenantId: 1 } };
+      const req = { user: { tenant: 1 } };
       const error = new Error('Error creating product');
 
       mockProductService.createProduct.mockRejectedValue(error);
@@ -162,7 +162,7 @@ describe('ProductController', () => {
 
     it('should handle role-based access control', async () => {
       mockRoleGuard.canActivate = jest.fn(() => true);
-      const req = { user: { tenantId: 1 } };
+      const req = { user: { tenant: 1 } };
 
       mockProductService.createProduct.mockResolvedValue({
         data: {
@@ -183,7 +183,7 @@ describe('ProductController', () => {
       ).resolves.not.toThrow();
       expect(mockProductService.createProduct).toHaveBeenCalledWith(
         productDto,
-        req.user.tenantId,
+        req.user.tenant,
       );
     });
   });
@@ -284,7 +284,7 @@ describe('ProductController', () => {
 
   describe('getProductList', () => {
     it('should return a list of products', async () => {
-      const req = { user: { tenantId: 1 } } as any;
+      const req = { user: { tenant: 1 } } as any;
 
       mockProductService.getProductList.mockResolvedValue(productListResult);
 
@@ -293,12 +293,12 @@ describe('ProductController', () => {
       );
       expect(mockProductService.getProductList).toHaveBeenCalledWith(
         listDto,
-        req.user.tenantId,
+        req.user.tenant,
       );
     });
 
     it('should handle errors', async () => {
-      const req = { user: { tenantId: 1 } } as any;
+      const req = { user: { tenant: 1 } } as any;
       const error = new Error(PRODUCT_NOT_FOUND);
 
       mockProductService.getProductList.mockRejectedValue(error);
@@ -311,7 +311,7 @@ describe('ProductController', () => {
     it('should handle role-based access control', async () => {
       mockRoleGuard.canActivate = jest.fn(() => true);
 
-      const req = { user: { tenantId: 1 } } as any;
+      const req = { user: { tenant: 1 } } as any;
       mockProductService.getProductList.mockResolvedValue(productListResult);
 
       await expect(
@@ -319,7 +319,7 @@ describe('ProductController', () => {
       ).resolves.not.toThrow();
       expect(mockProductService.getProductList).toHaveBeenCalledWith(
         listDto,
-        req.user.tenantId,
+        req.user.tenant,
       );
     });
   });

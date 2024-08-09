@@ -39,7 +39,7 @@ export class ProductService {
       }
       const productObj = {
         ...product,
-        tenantId: tenantId,
+        tenant: tenantId,
       };
       return await this.productRepo.save(productObj);
     } catch (error) {
@@ -103,7 +103,7 @@ export class ProductService {
       const queryBuilder = this.productRepo
         .createQueryBuilder('product')
         .leftJoinAndSelect('product.tenant', 'tenant')
-        .where('product.tenantId = :tenantId', { tenantId })
+        .where('product.tenant = :tenant', { tenant: tenantId })
         .select(['product', 'tenant.id', 'tenant.name']);
 
       if (body.search) {

@@ -21,6 +21,7 @@ import {
   USER_DELETE,
   USER_DETAIL,
   USER_LIST,
+  USER_NOT_FOUND,
   USER_UPDATE,
 } from 'src/common/constants/response.constants';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -156,7 +157,7 @@ describe('UserController', () => {
 
   describe('createUser', () => {
     it('should create a user and return the response', async () => {
-      const req = { user: { tenantId: 1 } } as any;
+      const req = { user: { tenant: 1 } } as any;
 
       mockUserService.createUser.mockResolvedValue(createUserResult);
 
@@ -165,13 +166,13 @@ describe('UserController', () => {
       );
       expect(mockUserService.createUser).toHaveBeenCalledWith(
         createUserDto,
-        req.user.tenantId,
+        req.user.tenant,
       );
       expect(service.createUser).toHaveBeenCalled();
     });
 
     it('should handle errors', async () => {
-      const req: Request = { user: { tenantId: 1 } } as any;
+      const req: Request = { user: { tenant: 1 } } as any;
       const error = new Error(USER_ALREADY_EXIST);
 
       mockUserService.createUser.mockRejectedValue(error);
@@ -183,7 +184,7 @@ describe('UserController', () => {
 
     it('should handle role-based access control', async () => {
       mockRoleGuard.canActivate = jest.fn(() => true);
-      const req = { user: { tenantId: 1 } } as any;
+      const req = { user: { tenant: 1 } } as any;
 
       mockUserService.createUser.mockResolvedValue(createUserResult);
 
@@ -192,7 +193,7 @@ describe('UserController', () => {
       ).resolves.not.toThrow();
       expect(mockUserService.createUser).toHaveBeenCalledWith(
         createUserDto,
-        req.user.tenantId,
+        req.user.tenant,
       );
     });
   });
@@ -264,7 +265,7 @@ describe('UserController', () => {
 
   describe('listUser', () => {
     it('should return a list of users', async () => {
-      const req = { user: { tenantId: 1 } } as any; // Simulate request object
+      const req = { user: { tenant: 1 } } as any; // Simulate request object
 
       mockUserService.findAllUser.mockResolvedValue(userListResult);
 
@@ -273,7 +274,7 @@ describe('UserController', () => {
     });
 
     it('should handle errors', async () => {
-      const req = { user: { tenantId: 1 } } as any;
+      const req = { user: { tenant: 1 } } as any;
       const error = new Error('Error fetching user list');
 
       mockUserService.findAllUser.mockRejectedValue(error);
@@ -283,7 +284,7 @@ describe('UserController', () => {
 
     it('should handle role-based access control', async () => {
       mockRoleGuard.canActivate = jest.fn(() => true);
-      const req = { user: { tenantId: 1 } } as any;
+      const req = { user: { tenant: 1 } } as any;
 
       mockUserService.findAllUser.mockResolvedValue(userListResult);
 
@@ -301,8 +302,7 @@ describe('UserController', () => {
     });
 
     it('should handle errors', async () => {
-      const id = 1;
-      const error = new Error('Error deleting user');
+      const error = new Error(USER_NOT_FOUND);
 
       mockUserService.deleteUser.mockRejectedValue(error);
 

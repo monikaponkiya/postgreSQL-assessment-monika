@@ -35,7 +35,7 @@ export const PRODUCT = {
     description: `
         Retrieves detailed information about a product by its ID.
         
-        **Access**: Users with the ADMIN, MANAGER, or STAFF role can access this endpoint.
+        **Access**: Users with the ADMIN or MANAGER role can access this endpoint.
         
         **Parameters**:
         - The ID of the product to be fetched is provided in the URL path.
@@ -49,7 +49,7 @@ export const PRODUCT = {
     description: `
         Retrieves a list of all products.
         
-        **Access**: Users with the ADMIN, MANAGER, or STAFF role can access this endpoint.
+        **Access**: Users with the ADMIN or MANAGER role can access this endpoint.
         
         **Response**:
         - Returns a list of products.

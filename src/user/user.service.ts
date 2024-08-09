@@ -65,7 +65,7 @@ export class UserService {
       const randomPassword = Math.random().toString(36).slice(-8);
       const userObj = {
         ...user,
-        tenantId: tenantId,
+        tenant: tenantId,
         password: await hash(randomPassword, 10),
       };
       const createdUser = await this.userRepo.save(userObj);
@@ -146,7 +146,7 @@ export class UserService {
       const queryBuilder = this.userRepo
         .createQueryBuilder('user')
         .leftJoinAndSelect('user.tenant', 'tenant')
-        .where('user.tenantId = :tenantId', { tenantId: user.tenant })
+        .where('user.tenant = :tenant', { tenant: user.tenant })
         .andWhere('user.role IN (:...roles)', { roles: roles })
         .select([
           'user.id',
@@ -187,7 +187,6 @@ export class UserService {
         limit,
       };
     } catch (error) {
-      console.log('error: ', error);
       throw AuthExceptions.customException(
         error?.response?.message,
         error?.status,

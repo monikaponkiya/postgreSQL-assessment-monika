@@ -57,7 +57,7 @@ export class ProductController {
     @Body() product: CreateUpdateProductDto,
     @Req() req: any,
   ) {
-    return await this.productService.createProduct(product, req.user.tenantId);
+    return await this.productService.createProduct(product, req.user.tenant);
   }
 
   @Put('update/:id')
@@ -99,7 +99,7 @@ export class ProductController {
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
   @UseGuards(RoleGuard)
   async getProductList(@Body() body: ListDto, @Req() req: any) {
-    return await this.productService.getProductList(body, req.user.tenantId);
+    return await this.productService.getProductList(body, req.user.tenant);
   }
 
   @Delete('delete/:id')

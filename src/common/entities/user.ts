@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserRole } from '../constants/user-role';
 import { Tenant } from './tenant';
 
@@ -25,11 +31,9 @@ export class User {
   @Column({ type: 'enum', enum: UserRole })
   role: string;
 
-  @Column({ default: null })
-  tenantId: number;
-
-  @ManyToOne(() => Tenant, (tenant) => tenant.id)
-  tenant: Tenant;
+  @ManyToOne(() => Tenant, (tenant) => tenant.users)
+  @JoinColumn({ name: 'tenant' })
+  tenant: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

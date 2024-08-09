@@ -55,7 +55,7 @@ export class UserController {
   @Roles(UserRole.ADMIN)
   @UseGuards(RoleGuard)
   async createUser(@Body() createUserDto: CreateUserDto, @Req() req: any) {
-    return await this.userService.createUser(createUserDto, req.user.tenantId);
+    return await this.userService.createUser(createUserDto, req.user.tenant);
   }
 
   @Put('update/:id')

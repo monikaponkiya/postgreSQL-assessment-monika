@@ -41,20 +41,29 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     try {
-      const user = await this.userRepo.findOne({
-        where: { email: loginDto.email },
-      });
+      const user = await this.userRepo
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.tenant', 'tenant')
+        .where('user.email = :email', { email: loginDto.email })
+        .select([
+          'user.id',
+          'user.name',
+          'user.role',
+          'user.password',
+          'tenant.id',
+        ])
+        .getRawOne();
       if (!user) {
         throw AuthExceptions.AccountNotFound();
       }
-      if (!(await compareSync(loginDto.password, user.password))) {
+      if (!(await compareSync(loginDto.password, user.user_password))) {
         throw AuthExceptions.InvalidIdPassword();
       }
       const payload = {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        tenantId: user.tenant,
+        id: user.user_id,
+        name: user.user_name,
+        role: user.user_role,
+        tenant: user.tenant_id,
       };
       return {
         access_token: await this.jwtService.signAsync(payload, {
@@ -68,7 +77,6 @@ export class AuthService {
         address: user.address,
       };
     } catch (error) {
-      console.log('error: ', error);
       throw AuthExceptions.customException(
         error?.response?.message,
         error?.status,
