@@ -29,6 +29,7 @@ export class AuthService {
         name: 'Admin',
         email: process.env.ADMIN_USER,
         phone: '8153848585',
+        address: 'Pune',
         password: await hash(process.env.ADMIN_PASSWORD, 10),
         role: UserRole.SUPER_ADMIN,
       };
@@ -53,15 +54,21 @@ export class AuthService {
         id: user.id,
         name: user.name,
         role: user.role,
-        tenantId: user.tenantId,
+        tenantId: user.tenant,
       };
       return {
         access_token: await this.jwtService.signAsync(payload, {
           secret: process.env.JWT_TOKEN_SECRET,
           expiresIn: process.env.JWT_TONE_EXPIRY_TIME,
         }),
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
       };
     } catch (error) {
+      console.log('error: ', error);
       throw AuthExceptions.customException(
         error?.response?.message,
         error?.status,

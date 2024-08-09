@@ -63,23 +63,21 @@ export class UpdateProductResponseDto extends BaseResponseDto {
 
 export class ProductDetailsResponseDto extends BaseResponseDto {
   @ApiProperty({
-    example: [
-      {
-        id: 1,
-        name: 'XYZ Gadget 1',
-        description: 'Innovative gadget from XYZ Ltd.',
-        price: 120,
-        tenantId: 2,
-        createdAt: '2024-08-08T07:16:43.301Z',
-        updatedAt: '2024-08-08T07:16:43.301Z',
-        tenant: {
-          id: 2,
-          name: 'XYZ Ltd.',
-        },
+    example: {
+      id: 1,
+      name: 'XYZ Gadget 1',
+      description: 'Innovative gadget from XYZ Ltd.',
+      price: 120,
+      tenantId: 2,
+      createdAt: '2024-08-08T07:16:43.301Z',
+      updatedAt: '2024-08-08T07:16:43.301Z',
+      tenant: {
+        id: 2,
+        name: 'XYZ Ltd.',
       },
-    ],
+    },
   })
-  data: (ProductDto & { tenant: { id: number; name: string } })[];
+  data: ProductDto & { tenant: { id: number; name: string } };
 
   @ApiProperty({ example: statusOk })
   statusCode: number;

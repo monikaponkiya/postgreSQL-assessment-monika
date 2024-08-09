@@ -146,7 +146,7 @@ export class UserService {
       const queryBuilder = this.userRepo
         .createQueryBuilder('user')
         .leftJoinAndSelect('user.tenant', 'tenant')
-        .where('user.tenantId = :tenantId', { tenantId: user.tenantId })
+        .where('user.tenantId = :tenantId', { tenantId: user.tenant })
         .andWhere('user.role IN (:...roles)', { roles: roles })
         .select([
           'user.id',

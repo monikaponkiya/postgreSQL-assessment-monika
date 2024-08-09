@@ -45,8 +45,14 @@ export class TenantService {
         address: '',
         tenantId: createdTenant.id,
       };
-      await this.userService.createUser(adminObj, createdTenant.id);
-      return createdTenant;
+      const createdAdmin = await this.userService.createUser(
+        adminObj,
+        createdTenant.id,
+      );
+      return {
+        ...createdTenant,
+        admin: createdAdmin,
+      };
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

@@ -10,7 +10,7 @@ export class LoginResponseDto extends BaseResponseDto {
   @ApiProperty({
     example: {
       access_token:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjQxMDQyOTY0LCJleHAiOjE2NDEwNDU2NDQsImlzQWRtaW4iOnRydWUsInJvbGUiOiJhZG1pbiIsInVzZXJuYW1lIjoiYWRtaW4ifQ.0rQ7Xb9nqDjzZkF5yQp2bPqM1f5pJ2bT',
+        'fdgklgewjprcmxlcxclksdfjl2k13l21k3dfndsfksdf45345kjjdsdflskjflsf',
     },
   })
   data: { access_token: string };

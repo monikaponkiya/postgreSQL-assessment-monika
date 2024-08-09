@@ -70,7 +70,7 @@ export class UserDetailResponseDto extends BaseResponseDto {
       },
     },
   })
-  data: (UserDto & { tenant: { id: number; name: string } })[];
+  data: UserDto & { tenant: { id: number; name: string } };
 
   @ApiProperty({ example: statusOk })
   statusCode: number;
