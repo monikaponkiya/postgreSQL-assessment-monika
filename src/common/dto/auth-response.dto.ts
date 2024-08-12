@@ -11,9 +11,21 @@ export class LoginResponseDto extends BaseResponseDto {
     example: {
       access_token:
         'fdgklgewjprcmxlcxclksdfjl2k13l21k3dfndsfksdf45345kjjdsdflskjflsf',
+      id: 1,
+      name: 'John Doe',
+      email: 'wY9rN@example.com',
+      phone: '1234567890',
+      address: '123 Main St',
     },
   })
-  data: { access_token: string };
+  data: {
+    access_token: string;
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+  };
 
   @ApiProperty({ example: statusOk })
   statusCode: number;

@@ -7,8 +7,8 @@ import {
   USER_NOT_FOUND,
 } from 'src/common/constants/response.constants';
 import { statusBadRequest } from 'src/common/constants/response.status.constant';
+import { accessUser, UserRole } from 'src/common/constants/user-role';
 import { ListDto } from 'src/common/dto/list.dto';
-import { Tenant } from 'src/common/entities/tenant';
 import { User } from 'src/common/entities/user';
 import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
 import applyQueryOptions from 'src/common/queryHelper';
@@ -17,13 +17,11 @@ import { welcomeTemplate } from 'src/email/emailTemplates/welcome';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { accessUser, UserRole } from 'src/common/constants/user-role';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(Tenant) private tenantRepo: Repository<Tenant>,
     private emailService: EmailService,
   ) {}
 

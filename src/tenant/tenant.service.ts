@@ -22,11 +22,17 @@ export class TenantService {
     private userService: UserService,
   ) {}
 
+  async findTenantByName(name: string) {
+    return await this.tenantRepo.findOneBy({ name });
+  }
+
+  async findTenantById(id: number) {
+    return await this.tenantRepo.findOneBy({ id });
+  }
+
   async createTenant(tenant: CreateTenantDto) {
     try {
-      const existTenant = await this.tenantRepo.findOneBy({
-        name: tenant.name,
-      });
+      const existTenant = await this.findTenantByName(tenant.name);
 
       if (existTenant) {
         throw AuthExceptions.customException(
@@ -56,9 +62,7 @@ export class TenantService {
 
   async updateTenant(id: number, tenant: UpdateTenantDto) {
     try {
-      const existTenant = await this.tenantRepo.findOneBy({
-        id,
-      });
+      const existTenant = await this.findTenantById(id);
       if (!existTenant) {
         throw AuthExceptions.customException(
           TENANT_NOT_FOUND,
@@ -75,11 +79,9 @@ export class TenantService {
     }
   }
 
-  async findTenantById(id: number) {
+  async findTenantDetail(id: number) {
     try {
-      const existTenant = await this.tenantRepo.findOneBy({
-        id,
-      });
+      const existTenant = await this.findTenantById(id);
       if (!existTenant) {
         throw AuthExceptions.customException(
           TENANT_NOT_FOUND,
@@ -174,9 +176,7 @@ export class TenantService {
 
   async deleteTenant(id: number) {
     try {
-      const existTenant = await this.tenantRepo.findOneBy({
-        id,
-      });
+      const existTenant = await this.findTenantById(id);
       if (!existTenant) {
         throw AuthExceptions.customException(
           TENANT_NOT_FOUND,

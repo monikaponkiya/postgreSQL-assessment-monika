@@ -14,6 +14,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { TENANT } from 'src/common/constants/api.description.constant';
 import {
   TENANT_CREATE,
   TENANT_DELETE,
@@ -21,14 +22,12 @@ import {
   TENANT_LIST,
   TENANT_UPDATE,
 } from 'src/common/constants/response.constants';
-import { ResponseMessage } from 'src/common/decorators/response.decorator';
-import { CreateTenantDto } from './dto/create-tenant.dto';
-import { UpdateTenantDto } from './dto/update-tenant.dto';
-import { TenantService } from './tenant.service';
-import { RoleGuard } from 'src/security/guard/role.guard';
 import { UserRole } from 'src/common/constants/user-role';
+import { ResponseMessage } from 'src/common/decorators/response.decorator';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { TENANT } from 'src/common/constants/api.description.constant';
+import { ListDto } from 'src/common/dto/list.dto';
+import { RoleGuard } from 'src/security/guard/role.guard';
+import { CreateTenantDto } from './dto/create-tenant.dto';
 import {
   CreateTenantResponseDto,
   TenantDeleteResponseDto,
@@ -36,7 +35,8 @@ import {
   TenantListResponseDto,
   UpdateTenantResponseDto,
 } from './dto/tenant-response.dto';
-import { ListDto } from 'src/common/dto/list.dto';
+import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { TenantService } from './tenant.service';
 
 @Controller('tenant')
 @ApiTags('Tenant Management')
@@ -75,7 +75,7 @@ export class TenantController {
   @ApiResponse({ type: TenantDetailResponseDto })
   @ResponseMessage(TENANT_DETAIL)
   findById(@Param('id') id: number) {
-    return this.tenantService.findTenantById(id);
+    return this.tenantService.findTenantDetail(id);
   }
 
   @Post('findAll')

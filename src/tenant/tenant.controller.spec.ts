@@ -32,7 +32,7 @@ describe('TenantController', () => {
     createTenant: jest.fn(),
     updateTenant: jest.fn(),
     findAllTenants: jest.fn(),
-    findTenantById: jest.fn(),
+    findTenantDetail: jest.fn(),
     deleteTenant: jest.fn(),
   };
 
@@ -159,16 +159,16 @@ describe('TenantController', () => {
         statusCode: statusOk,
       };
 
-      mockTenantService.findTenantById.mockResolvedValue(result);
+      mockTenantService.findTenantDetail.mockResolvedValue(result);
 
       expect(await controller.findById(id)).toBe(result);
-      expect(mockTenantService.findTenantById).toHaveBeenCalledWith(id);
+      expect(mockTenantService.findTenantDetail).toHaveBeenCalledWith(id);
     });
 
     it('should handle errors', async () => {
       const error = new Error(TENANT_NOT_FOUND);
 
-      mockTenantService.findTenantById.mockRejectedValue(error);
+      mockTenantService.findTenantDetail.mockRejectedValue(error);
 
       await expect(controller.findById(id)).rejects.toThrow(error);
     });

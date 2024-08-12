@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Tenant } from './tenant';
 
 @Entity()
@@ -16,6 +22,7 @@ export class Product {
   price: number;
 
   @ManyToOne(() => Tenant, (tenant) => tenant.products)
+  @JoinColumn({ name: 'tenant' })
   tenant: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
