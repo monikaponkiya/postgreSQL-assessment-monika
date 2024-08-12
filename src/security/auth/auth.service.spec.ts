@@ -205,7 +205,6 @@ describe('AuthService', () => {
       const currentPassword = 'currentPassword';
       const newPassword = 'newPassword';
       const hashedCurrentPassword = await hash(currentPassword, 10);
-      const hashedNewPassword = await hash(newPassword, 10);
 
       const user = {
         id: userId,

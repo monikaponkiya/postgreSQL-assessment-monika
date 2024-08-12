@@ -194,7 +194,7 @@ describe('UserService', () => {
         throw new Error('Internal Server Error');
       });
 
-      await expect(service.findUserDetails(userId)).rejects.toThrowError(
+      await expect(service.findUserDetails(userId)).rejects.toThrow(
         'Internal Server Error',
       );
     });
