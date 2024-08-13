@@ -12,12 +12,10 @@ import {
   statusOk,
 } from 'src/common/constants/response.status.constant';
 import { RoleGuard } from 'src/security/guard/role.guard';
-import { CreateUpdateProductDto } from './dto/create-update-product.dto';
+import { CreateProductDto } from './dto/create-update-product.dto';
 import {
   CreateProductResponseDto,
   ProductDeleteResponseDto,
-  ProductDetailsResponseDto,
-  ProductListResponseDto,
   UpdateProductResponseDto,
 } from './dto/product-response.dto';
 import { ProductController } from './product.controller';
@@ -59,19 +57,18 @@ describe('ProductController', () => {
     service = module.get<ProductService>(ProductService);
   });
 
-  const productDto: CreateUpdateProductDto = {
+  const productDto: CreateProductDto = {
     name: 'Test Product',
     description: 'Test Description',
     price: 10.99,
   };
 
-  const productDetailResult: ProductDetailsResponseDto = {
+  const productDetailResult = {
     data: {
       id: 1,
       name: 'XYZ Gadget 1',
       description: 'Innovative gadget from XYZ Ltd.',
       price: 120,
-      tenantId: 2,
       createdAt: '2024-08-08T07:16:43.301Z',
       updatedAt: '2024-08-08T07:16:43.301Z',
       tenant: {
@@ -90,14 +87,13 @@ describe('ProductController', () => {
     sortBy: 'name',
     sortOrder: 'asc',
   };
-  const productListResult: ProductListResponseDto = {
+  const productListResult = {
     data: [
       {
         id: 1,
         name: 'Test Product',
         description: 'Test Description',
         price: 10.99,
-        tenantId: 1,
         createdAt: '2022-01-01T00:00:00.000Z',
         updatedAt: '2022-01-01T00:00:00.000Z',
         tenant: {
@@ -131,7 +127,7 @@ describe('ProductController', () => {
           name: 'Test Product',
           description: 'Test Description',
           price: 10.99,
-          tenantId: 1,
+          tenant: 1,
           createdAt: '2022-01-01T00:00:00.000Z',
           updatedAt: '2022-01-01T00:00:00.000Z',
         },
@@ -170,7 +166,7 @@ describe('ProductController', () => {
           name: 'Test Product',
           description: 'Test Description',
           price: 10.99,
-          tenantId: 1,
+          tenant: 1,
           createdAt: '2022-01-01T00:00:00.000Z',
           updatedAt: '2022-01-01T00:00:00.000Z',
         },
@@ -196,7 +192,7 @@ describe('ProductController', () => {
           name: 'Test Product',
           description: 'Test Description',
           price: 10.99,
-          tenantId: 1,
+          tenant: 1,
           createdAt: '2022-01-01T00:00:00.000Z',
           updatedAt: '2022-01-01T00:00:00.000Z',
         },
@@ -231,7 +227,7 @@ describe('ProductController', () => {
           name: 'Test Product',
           description: 'Test Description',
           price: 10.99,
-          tenantId: 1,
+          tenant: 1,
           createdAt: '2022-01-01T00:00:00.000Z',
           updatedAt: '2022-01-01T00:00:00.000Z',
         },

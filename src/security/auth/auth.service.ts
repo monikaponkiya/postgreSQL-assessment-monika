@@ -49,6 +49,9 @@ export class AuthService {
           'user.id',
           'user.name',
           'user.role',
+          'user.phone',
+          'user.email',
+          'user.address',
           'user.password',
           'tenant.id',
         ])
@@ -70,11 +73,11 @@ export class AuthService {
           secret: process.env.JWT_TOKEN_SECRET,
           expiresIn: process.env.JWT_TONE_EXPIRY_TIME,
         }),
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        address: user.address,
+        id: user.user_id,
+        name: user.user_name,
+        email: user.user_email,
+        phone: user.user_phone,
+        address: user.user_address,
       };
     } catch (error) {
       throw AuthExceptions.customException(
@@ -84,7 +87,7 @@ export class AuthService {
     }
   }
 
-  async userChangePassword(body: ChangePasswordDto) {
+  async changePassword(body: ChangePasswordDto) {
     try {
       const user = await this.userRepo.findOneBy({ id: body.id });
       if (!user) {

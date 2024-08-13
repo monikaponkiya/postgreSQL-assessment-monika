@@ -42,7 +42,7 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Post('user/change-password')
+  @Post('user/changePassword')
   @ApiOperation({
     summary: USER.CHANGE_PASSWORD.summary,
     description: USER.CHANGE_PASSWORD.description,
@@ -52,7 +52,7 @@ export class AuthController {
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
   @UseGuards(RoleGuard)
   @ResponseMessage(USER_CHANGE_PASSWORD)
-  async schoolChangePassword(@Body() body: ChangePasswordDto) {
-    return this.authService.userChangePassword(body);
+  async changePassword(@Body() body: ChangePasswordDto) {
+    return this.authService.changePassword(body);
   }
 }

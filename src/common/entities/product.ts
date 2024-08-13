@@ -21,7 +21,7 @@ export class Product {
   @Column('decimal')
   price: number;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.products)
+  @ManyToOne(() => Tenant, (tenant) => tenant.products, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant' })
   tenant: number;
 

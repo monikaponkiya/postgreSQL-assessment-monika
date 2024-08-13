@@ -90,21 +90,9 @@ export class TenantService {
       }
       return await this.tenantRepo
         .createQueryBuilder('tenant')
-        .leftJoinAndSelect('tenant.users', 'users')
-        .leftJoinAndSelect('tenant.products', 'products')
         .where('tenant.id = :id', { id })
         .select([
           'tenant',
-          'users.id',
-          'users.name',
-          'users.email',
-          'users.phone',
-          'users.address',
-          'users.role',
-          'products.id',
-          'products.name',
-          'products.description',
-          'products.price',
         ])
         .getOne();
     } catch (error) {
@@ -123,25 +111,13 @@ export class TenantService {
 
       const queryBuilder = this.tenantRepo
         .createQueryBuilder('tenant')
-        .leftJoinAndSelect('tenant.users', 'users')
-        .leftJoinAndSelect('tenant.products', 'products')
         .select([
-          'tenant',
-          'users.id',
-          'users.name',
-          'users.email',
-          'users.phone',
-          'users.address',
-          'users.role',
-          'products.id',
-          'products.name',
-          'products.description',
-          'products.price',
+          'tenant'
         ]);
 
       if (body.search) {
         queryBuilder.andWhere(
-          '(tenant.name LIKE :search OR users.name LIKE :search)',
+          '(tenant.name LIKE :search)',
           { search: `%${body.search}%` },
         );
       }
@@ -183,7 +159,8 @@ export class TenantService {
           statusBadRequest,
         );
       }
-      return await this.tenantRepo.remove(existTenant);
+      await this.tenantRepo.remove(existTenant);
+      return {};
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

@@ -31,7 +31,7 @@ export class User {
   @Column({ type: 'enum', enum: UserRole })
   role: string;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.users)
+  @ManyToOne(() => Tenant, (tenant) => tenant.users, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant' })
   tenant: number;
 

@@ -17,10 +17,16 @@ export class Tenant {
   @Column({ unique: true })
   name: string;
 
-  @OneToMany(() => User, (user) => user.tenant)
+  @OneToMany(() => User, (user) => user.tenant, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   users: User[];
 
-  @OneToMany(() => Product, (product) => product.tenant)
+  @OneToMany(() => Product, (product) => product.tenant, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   products: Product[];
 
   @CreateDateColumn()

@@ -228,7 +228,7 @@ describe('UserService', () => {
 
       const result = await service.deleteUser(userId);
 
-      expect(result).toEqual({ affected: 1 });
+      expect(result).toEqual({ });
       expect(userRepo.findOneBy).toHaveBeenCalledWith({ id: userId });
       expect(queryBuilder.delete).toHaveBeenCalled();
       expect(queryBuilder.from).toHaveBeenCalledWith(User);

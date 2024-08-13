@@ -6,7 +6,7 @@ import { Product } from 'src/common/entities/product';
 import { Tenant } from 'src/common/entities/tenant';
 import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
 import { Repository } from 'typeorm';
-import { CreateUpdateProductDto } from './dto/create-update-product.dto';
+import { CreateProductDto } from './dto/create-update-product.dto';
 import { ProductService } from './product.service';
 
 describe('ProductService', () => {
@@ -37,12 +37,12 @@ describe('ProductService', () => {
     productRepo = module.get<Repository<Product>>(getRepositoryToken(Product));
   });
 
-  const productDto: CreateUpdateProductDto = {
+  const productDto: CreateProductDto = {
     name: 'Existing Product',
     description: 'Product Description',
     price: 100,
   };
-  const tenantId = 1;
+  const tenant = 1;
   const productId = 1;
   const expectedProductDetail = {
     id: productId,
@@ -67,13 +67,13 @@ describe('ProductService', () => {
       id: 1,
       name: 'Product 1',
       price: 100,
-      tenant: { id: tenantId, name: 'Tenant 1' },
+      tenant: { id: tenant, name: 'Tenant 1' },
     },
     {
       id: 2,
       name: 'Product 2',
       price: 150,
-      tenant: { id: tenantId, name: 'Tenant 1' },
+      tenant: { id: tenant, name: 'Tenant 1' },
     },
   ];
   const total = 2;
@@ -87,14 +87,14 @@ describe('ProductService', () => {
       const productObj = {
         ...productDto,
         id: 1,
-        tenant: tenantId,
+        tenant: tenant,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       jest.spyOn(service, 'findProductByName').mockResolvedValue(null);
       jest.spyOn(productRepo, 'save').mockResolvedValue(productObj);
-      const result = await service.createProduct(productDto, tenantId);
+      const result = await service.createProduct(productDto, tenant);
 
       expect(result).toEqual(result);
       expect(service.findProductByName).toHaveBeenCalledWith(productDto.name);
@@ -105,12 +105,12 @@ describe('ProductService', () => {
       jest.spyOn(service, 'findProductByName').mockResolvedValue({
         ...productDto,
         id: 1,
-        tenant: tenantId,
+        tenant: tenant,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      await expect(service.createProduct(productDto, tenantId)).rejects.toThrow(
+      await expect(service.createProduct(productDto, tenant)).rejects.toThrow(
         AuthExceptions.customException(
           'Product already exist',
           HttpStatus.BAD_REQUEST,
@@ -119,7 +119,7 @@ describe('ProductService', () => {
     });
 
     it('should handle errors during product creation', async () => {
-      const productDto: CreateUpdateProductDto = {
+      const productDto: CreateProductDto = {
         name: 'New Product',
         description: 'Product Description',
         price: 100,
@@ -129,7 +129,7 @@ describe('ProductService', () => {
         .spyOn(productRepo, 'save')
         .mockRejectedValue(new Error('Internal Server Error'));
 
-      await expect(service.createProduct(productDto, tenantId)).rejects.toThrow(
+      await expect(service.createProduct(productDto, tenant)).rejects.toThrow(
         AuthExceptions.customException(
           'Internal Server Error',
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -141,7 +141,7 @@ describe('ProductService', () => {
   describe('updateProduct', () => {
     it('should throw an exception when the product does not exist', async () => {
       const productId = 1;
-      const updateDto: CreateUpdateProductDto = {
+      const updateDto: CreateProductDto = {
         name: 'Updated Product',
         description: 'Updated Description',
         price: 150,
@@ -163,7 +163,7 @@ describe('ProductService', () => {
     });
 
     it('should handle errors during the update process', async () => {
-      const updateDto: CreateUpdateProductDto = {
+      const updateDto: CreateProductDto = {
         name: 'Updated Product',
         description: 'Updated Description',
         price: 150,
@@ -244,7 +244,7 @@ describe('ProductService', () => {
         getManyAndCount: jest.fn().mockResolvedValue([products, total]),
       } as any);
 
-      const result = await service.getProductList(listDto, tenantId);
+      const result = await service.getProductList(listDto, tenant);
 
       expect(result).toEqual({
         data: products,
@@ -265,7 +265,7 @@ describe('ProductService', () => {
         getManyAndCount: jest.fn().mockResolvedValue([products, total]),
       } as any);
 
-      const result = await service.getProductList(listDto, tenantId);
+      const result = await service.getProductList(listDto, tenant);
 
       expect(result.page).toBe(listDto.page);
       expect(result.limit).toBe(listDto.limit);
@@ -282,7 +282,7 @@ describe('ProductService', () => {
           .mockRejectedValue(new Error('Internal Server Error')),
       } as any);
 
-      await expect(service.getProductList(listDto, tenantId)).rejects.toThrow(
+      await expect(service.getProductList(listDto, tenant)).rejects.toThrow(
         AuthExceptions.customException(
           'Internal Server Error',
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -300,12 +300,10 @@ describe('ProductService', () => {
         delete: jest.fn().mockReturnThis(),
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        execute: jest.fn().mockResolvedValue({ affected: 1 }), // Simulate successful deletion
+        execute: jest.fn().mockResolvedValue({ }),
       } as any);
 
-      await expect(service.deleteProduct(productId)).resolves.toEqual({
-        affected: 1,
-      });
+      await expect(service.deleteProduct(productId)).resolves.toEqual({ });
       expect(service.findProductById).toHaveBeenCalledWith(productId);
       expect(productRepo.createQueryBuilder).toHaveBeenCalledWith('product');
     });

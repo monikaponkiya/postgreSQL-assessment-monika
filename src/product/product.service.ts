@@ -11,7 +11,10 @@ import { Tenant } from 'src/common/entities/tenant';
 import { AuthExceptions } from 'src/common/helpers/exceptions/auth.exception';
 import applyQueryOptions from 'src/common/queryHelper';
 import { Repository } from 'typeorm';
-import { CreateUpdateProductDto } from './dto/create-update-product.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+} from './dto/create-update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -28,7 +31,7 @@ export class ProductService {
     return await this.productRepo.findOne({ where: { id } });
   }
 
-  async createProduct(product: CreateUpdateProductDto, tenantId: number) {
+  async createProduct(product: CreateProductDto, tenant: number) {
     try {
       const isProductExist = await this.findProductByName(product.name);
       if (isProductExist) {
@@ -39,7 +42,7 @@ export class ProductService {
       }
       const productObj = {
         ...product,
-        tenant: tenantId,
+        tenant,
       };
       return await this.productRepo.save(productObj);
     } catch (error) {
@@ -50,7 +53,7 @@ export class ProductService {
     }
   }
 
-  async updateProduct(id: number, product: CreateUpdateProductDto) {
+  async updateProduct(id: number, product: UpdateProductDto) {
     try {
       const productExist = await this.findProductById(id);
       if (!productExist) {
@@ -59,10 +62,13 @@ export class ProductService {
           statusBadRequest,
         );
       }
-      productExist.name = product.name;
-      productExist.price = product.price;
-      productExist.description = product.description;
-      return await this.productRepo.save(productExist);
+      // productExist.name = product.name;
+      // productExist.price = product.price;
+      // productExist.description = product.description;
+      return await this.productRepo.save({
+        ...productExist,
+        ...product,
+      });
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,
@@ -94,7 +100,7 @@ export class ProductService {
     }
   }
 
-  async getProductList(body: ListDto, tenantId: number) {
+  async getProductList(body: ListDto, tenant: number) {
     try {
       const page = body.page ? Number(body.page) : 1;
       const limit = body.limit ? Number(body.limit) : 10;
@@ -103,7 +109,7 @@ export class ProductService {
       const queryBuilder = this.productRepo
         .createQueryBuilder('product')
         .leftJoinAndSelect('product.tenant', 'tenant')
-        .where('product.tenant = :tenant', { tenant: tenantId })
+        .where('product.tenant = :tenant', { tenant })
         .select(['product', 'tenant.id', 'tenant.name']);
 
       if (body.search) {
@@ -150,12 +156,14 @@ export class ProductService {
           statusBadRequest,
         );
       }
-      return await this.productRepo
+      await this.productRepo
         .createQueryBuilder('product')
         .delete()
         .from(Product)
         .where('id = :id', { id })
         .execute();
+
+      return {};
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

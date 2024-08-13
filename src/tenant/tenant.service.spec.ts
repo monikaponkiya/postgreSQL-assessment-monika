@@ -53,10 +53,10 @@ describe('TenantService', () => {
     company_email: 'contact@company.com',
     company_phone: '1234567890',
   };
-  const tenantId = 1;
+  const tenant = 1;
   const updateTenantDto: UpdateTenantDto = { name: 'Updated Name' };
-  const existingTenant = { id: tenantId, name: 'Old Name' };
-  const tenantToDelete = { id: tenantId, name: 'TenantName' } as Tenant;
+  const existingTenant = { id: tenant, name: 'Old Name' };
+  const tenantToDelete = { id: tenant, name: 'TenantName' } as Tenant;
 
   const body: ListDto = {
     page: 1,
@@ -195,10 +195,7 @@ describe('TenantService', () => {
         name: updateTenantDto.name,
       } as any);
 
-      const updatedTenant = await service.updateTenant(
-        tenantId,
-        updateTenantDto,
-      );
+      const updatedTenant = await service.updateTenant(tenant, updateTenantDto);
       expect(updatedTenant.name).toEqual(updateTenantDto.name);
     });
 
@@ -208,16 +205,16 @@ describe('TenantService', () => {
       jest.spyOn(tenantRepo, 'findOneBy').mockResolvedValue(null);
 
       await expect(
-        service.updateTenant(tenantId, updateTenantDto),
+        service.updateTenant(tenant, updateTenantDto),
       ).rejects.toThrow(
         AuthExceptions.customException(TENANT_NOT_FOUND, 'statusBadRequest'),
       );
     });
 
     it('should handle exceptions thrown during save', async () => {
-      const tenantId = 1;
+      const tenant = 1;
       const updateTenantDto: UpdateTenantDto = { name: 'Updated Name' };
-      const existingTenant = { id: tenantId, name: 'Old Name' };
+      const existingTenant = { id: tenant, name: 'Old Name' };
 
       jest
         .spyOn(tenantRepo, 'findOneBy')
@@ -227,7 +224,7 @@ describe('TenantService', () => {
         .mockRejectedValue(new Error('Internal Server Error'));
 
       await expect(
-        service.updateTenant(tenantId, updateTenantDto),
+        service.updateTenant(tenant, updateTenantDto),
       ).rejects.toThrow(
         AuthExceptions.customException('Internal Server Error', undefined),
       );
@@ -237,7 +234,7 @@ describe('TenantService', () => {
   describe('findTenantDetail', () => {
     it('should return tenant details with users and products', async () => {
       const tenantDetail = {
-        id: tenantId,
+        id: tenant,
         name: 'TenantName',
         users: [
           {
@@ -264,26 +261,26 @@ describe('TenantService', () => {
         getOne: jest.fn().mockResolvedValue(tenantDetail),
       } as any);
 
-      const result = await service.findTenantDetail(tenantId);
+      const result = await service.findTenantDetail(tenant);
       expect(result).toEqual(tenantDetail);
-      expect(service.findTenantById).toHaveBeenCalledWith(tenantId);
+      expect(service.findTenantById).toHaveBeenCalledWith(tenant);
       expect(tenantRepo.createQueryBuilder).toHaveBeenCalledWith('tenant');
     });
 
     it('should throw an exception if tenant is not found', async () => {
       jest.spyOn(service, 'findTenantById').mockResolvedValue(null);
 
-      await expect(service.findTenantDetail(tenantId)).rejects.toThrow(
+      await expect(service.findTenantDetail(tenant)).rejects.toThrow(
         AuthExceptions.customException(TENANT_NOT_FOUND, statusBadRequest),
       );
 
-      expect(service.findTenantById).toHaveBeenCalledWith(tenantId);
+      expect(service.findTenantById).toHaveBeenCalledWith(tenant);
       expect(tenantRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
 
     it('should handle and rethrow exceptions during query execution', async () => {
       const tenantMock: Tenant = {
-        id: tenantId,
+        id: tenant,
         name: 'TenantName',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -298,11 +295,11 @@ describe('TenantService', () => {
         getOne: jest.fn().mockRejectedValue(new Error('Internal Server Error')),
       } as any);
 
-      await expect(service.findTenantDetail(tenantId)).rejects.toThrow(
+      await expect(service.findTenantDetail(tenant)).rejects.toThrow(
         AuthExceptions.customException('Internal Server Error', undefined),
       );
 
-      expect(service.findTenantById).toHaveBeenCalledWith(tenantId);
+      expect(service.findTenantById).toHaveBeenCalledWith(tenant);
       expect(tenantRepo.createQueryBuilder).toHaveBeenCalledWith('tenant');
     });
   });
@@ -312,21 +309,21 @@ describe('TenantService', () => {
       jest.spyOn(service, 'findTenantById').mockResolvedValue(tenantToDelete);
       jest.spyOn(tenantRepo, 'remove').mockResolvedValue(tenantToDelete);
 
-      const result = await service.deleteTenant(tenantId);
+      const result = await service.deleteTenant(tenant);
 
-      expect(result).toEqual(tenantToDelete);
-      expect(service.findTenantById).toHaveBeenCalledWith(tenantId);
+      expect(result).toEqual({});
+      expect(service.findTenantById).toHaveBeenCalledWith(tenant);
       expect(tenantRepo.remove).toHaveBeenCalledWith(tenantToDelete);
     });
 
     it('should throw an exception if the tenant does not exist', async () => {
       jest.spyOn(service, 'findTenantById').mockResolvedValue(null);
 
-      await expect(service.deleteTenant(tenantId)).rejects.toThrow(
+      await expect(service.deleteTenant(tenant)).rejects.toThrow(
         AuthExceptions.customException(TENANT_NOT_FOUND, statusBadRequest),
       );
 
-      expect(service.findTenantById).toHaveBeenCalledWith(tenantId);
+      expect(service.findTenantById).toHaveBeenCalledWith(tenant);
       expect(tenantRepo.remove).not.toHaveBeenCalled();
     });
 
@@ -336,11 +333,11 @@ describe('TenantService', () => {
         .spyOn(tenantRepo, 'remove')
         .mockRejectedValue(new Error('Internal Server Error'));
 
-      await expect(service.deleteTenant(tenantId)).rejects.toThrow(
+      await expect(service.deleteTenant(tenant)).rejects.toThrow(
         AuthExceptions.customException('Internal Server Error', undefined),
       );
 
-      expect(service.findTenantById).toHaveBeenCalledWith(tenantId);
+      expect(service.findTenantById).toHaveBeenCalledWith(tenant);
       expect(tenantRepo.remove).toHaveBeenCalledWith(tenantToDelete);
     });
   });

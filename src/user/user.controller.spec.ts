@@ -142,6 +142,9 @@ describe('UserController', () => {
         },
       },
     ],
+    total: 1,
+    page: 1,
+    limit: 10,
     message: USER_LIST,
     statusCode: statusOk,
   };

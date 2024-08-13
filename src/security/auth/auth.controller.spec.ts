@@ -21,7 +21,7 @@ describe('AuthController', () => {
 
   const mockAuthService = {
     login: jest.fn(),
-    userChangePassword: jest.fn(),
+    changePassword: jest.fn(),
   };
 
   const mockRoleGuard = {
@@ -107,20 +107,20 @@ describe('AuthController', () => {
     });
   });
 
-  describe('schoolChangePassword', () => {
+  describe('ChangePassword', () => {
     it('should change password successfully', async () => {
-      mockAuthService.userChangePassword.mockResolvedValue(result);
+      mockAuthService.changePassword.mockResolvedValue(result);
 
-      expect(await controller.schoolChangePassword(body)).toBe(result);
-      expect(mockAuthService.userChangePassword).toHaveBeenCalledWith(body);
+      expect(await controller.changePassword(body)).toBe(result);
+      expect(mockAuthService.changePassword).toHaveBeenCalledWith(body);
     });
 
     it('should handle errors during password change', async () => {
       const error = new Error(USER_NOT_FOUND);
 
-      mockAuthService.userChangePassword.mockRejectedValue(error);
+      mockAuthService.changePassword.mockRejectedValue(error);
 
-      await expect(controller.schoolChangePassword(body)).rejects.toThrow(
+      await expect(controller.changePassword(body)).rejects.toThrow(
         error,
       );
     });
@@ -128,12 +128,12 @@ describe('AuthController', () => {
     it('should handle role-based access control', async () => {
       mockRoleGuard.canActivate = jest.fn(() => true);
 
-      mockAuthService.userChangePassword.mockResolvedValue(result);
+      mockAuthService.changePassword.mockResolvedValue(result);
 
       await expect(
-        controller.schoolChangePassword(body),
+        controller.changePassword(body),
       ).resolves.not.toThrow();
-      expect(mockAuthService.userChangePassword).toHaveBeenCalledWith(body);
+      expect(mockAuthService.changePassword).toHaveBeenCalledWith(body);
     });
   });
 });

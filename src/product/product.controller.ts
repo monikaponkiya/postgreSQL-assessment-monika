@@ -28,7 +28,10 @@ import { ResponseMessage } from 'src/common/decorators/response.decorator';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { ListDto } from 'src/common/dto/list.dto';
 import { RoleGuard } from 'src/security/guard/role.guard';
-import { CreateUpdateProductDto } from './dto/create-update-product.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+} from './dto/create-update-product.dto';
 import {
   CreateProductResponseDto,
   ProductDeleteResponseDto,
@@ -53,10 +56,7 @@ export class ProductController {
   @ResponseMessage(PRODUCT_CREATE)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @UseGuards(RoleGuard)
-  async createProduct(
-    @Body() product: CreateUpdateProductDto,
-    @Req() req: any,
-  ) {
+  async createProduct(@Body() product: CreateProductDto, @Req() req: any) {
     return await this.productService.createProduct(product, req.user.tenant);
   }
 
@@ -71,7 +71,7 @@ export class ProductController {
   @UseGuards(RoleGuard)
   async updateProduct(
     @Param('id') id: number,
-    @Body() product: CreateUpdateProductDto,
+    @Body() product: UpdateProductDto,
   ) {
     return await this.productService.updateProduct(id, product);
   }

@@ -211,7 +211,7 @@ describe('AuthService', () => {
         password: hashedCurrentPassword,
       };
       jest.spyOn(userRepo, 'findOneBy').mockResolvedValue(user as User);
-      await service.userChangePassword({
+      await service.changePassword({
         id: userId,
         current_password: currentPassword,
         new_password: newPassword,
@@ -229,7 +229,7 @@ describe('AuthService', () => {
       jest.spyOn(userRepo, 'findOneBy').mockResolvedValue(null);
 
       await expect(
-        service.userChangePassword({
+        service.changePassword({
           id: userId,
           current_password: 'anyPassword',
           new_password: 'newPassword',
@@ -252,7 +252,7 @@ describe('AuthService', () => {
       jest.spyOn(userRepo, 'findOneBy').mockResolvedValue(user as User);
 
       await expect(
-        service.userChangePassword({
+        service.changePassword({
           id: userId,
           current_password: currentPassword,
           new_password: newPassword,
@@ -268,7 +268,7 @@ describe('AuthService', () => {
       jest.spyOn(userRepo, 'findOneBy').mockRejectedValue(error);
 
       await expect(
-        service.userChangePassword({
+        service.changePassword({
           id: userId,
           current_password: 'anyPassword',
           new_password: 'newPassword',

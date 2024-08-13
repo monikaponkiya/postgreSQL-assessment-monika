@@ -51,7 +51,7 @@ export class UserService {
     return await this.userRepo.findOneBy({ id });
   }
 
-  async createUser(user: CreateUserDto, tenantId: number) {
+  async createUser(user: CreateUserDto, tenant: number) {
     try {
       const isUserExist = await this.findUserByEmail(user.email);
       if (isUserExist) {
@@ -63,7 +63,7 @@ export class UserService {
       const randomPassword = Math.random().toString(36).slice(-8);
       const userObj = {
         ...user,
-        tenant: tenantId,
+        tenant: tenant,
         password: await hash(randomPassword, 10),
       };
       const createdUser = await this.userRepo.save(userObj);
@@ -91,11 +91,7 @@ export class UserService {
       if (!userExist) {
         throw AuthExceptions.customException(USER_NOT_FOUND, statusBadRequest);
       }
-      userExist.name = user.name;
-      userExist.phone = user.phone;
-      userExist.address = user.address;
-      userExist.role = user.role;
-      const updatedUser = await this.userRepo.save(userExist);
+      const updatedUser = await this.userRepo.save({ ...userExist, ...user });
       return this.extractUserDetails(updatedUser);
     } catch (error) {
       throw AuthExceptions.customException(
@@ -198,12 +194,13 @@ export class UserService {
       if (!userExist) {
         throw AuthExceptions.customException(USER_NOT_FOUND, statusBadRequest);
       }
-      return await this.userRepo
+      await this.userRepo
         .createQueryBuilder('user')
         .delete()
         .from(User)
         .where('id = :id', { id })
         .execute();
+      return {};
     } catch (error) {
       throw AuthExceptions.customException(
         error?.response?.message,

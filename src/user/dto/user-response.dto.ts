@@ -98,6 +98,15 @@ export class UserListResponseDto extends BaseResponseDto {
   })
   data: (UserDto & { tenant: { id: number; name: string } })[];
 
+  @ApiProperty({ example: 0 })
+  page: number;
+
+  @ApiProperty({ example: 10 })
+  limit: number;
+
+  @ApiProperty({ example: 10 })
+  total: number;
+
   @ApiProperty({ example: statusOk })
   statusCode: number;
 
